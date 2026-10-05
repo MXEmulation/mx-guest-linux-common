@@ -1,5 +1,7 @@
 # Build output
 /build/
+/tests/test_abi
+/tests/test_batch
 *.o
 *.a
 *.so

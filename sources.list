@@ -1,0 +1,5 @@
+src/mxgpu_drm_abi.c
+include/mxgpu_drm_uapi.h
+tests/test_abi.c
+tests/test_batch.c
+tests/test_response.c

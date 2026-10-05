@@ -21,7 +21,11 @@ None at present. This repository carries no submodules.
 
 BUILD INPUTS, NOT REDISTRIBUTED
 
-None.
+The Linux kernel's type and string headers are build inputs when these
+codecs are compiled into the kernel module. No kernel header or
+implementation is copied into this repository. The C compiler, Make
+and C library used by the CPU tests are supplied by the build system;
+no copies of these tools or libraries are carried here.
 
 
 WHEN AN ENTRY MUST BE ADDED
