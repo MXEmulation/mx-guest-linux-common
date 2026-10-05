@@ -1,71 +1,26 @@
 <!-- REUSE-IgnoreStart -->
 # Contributing to mx-guest-linux-common
 
-Read [README.md](README.md) first. This repository holds only the two Linux kernel-to-userspace ABIs and their version constants. Implementation on either side of an ABI belongs in the kernel or agent repository, and anything that is identical on every guest operating system belongs in mx-guest-core.
+Read [README.md](README.md). This repository owns Linux kernel-to-userspace ABI records and versions. OS-neutral device protocol belongs in Core; scheduling, resource management and daemon routing belong in their consumers.
 
-## ABI changes
+- Changes must build in kernel and userspace contexts.
+- Update ABI versions when accepted or emitted records change.
+- Update both codecs and their tests when a record changes.
+- List every C source and header once in `sources.list`.
+- Identify affected consumer pins and compatibility in the commit description.
 
-- Both sides compile these files: the kernel modules in kernel context and the userspace consumers (the Mesa driver and the agent) in userspace. A change must build in both.
-- A change that alters what either side may send or accept changes the ABI's version constants in the same commit.
-- Where a record has an encoder and decoder pair here, a change to the record changes both, and the tests that check one side against the other.
-- Say in the commit message which consumers must move their pin, and whether an older consumer remains compatible.
+The repository licence is MIT.
 
-## Developer Certificate of Origin
+## Contributions
 
-Contributions are accepted under the Developer Certificate of Origin, version 1.1: https://developercertificate.org
+Read the [Developer Certificate of Origin 1.1](https://developercertificate.org) before signing off. Every commit requires a `Signed-off-by` trailer matching its author's name and email. Use `git commit -s`; the pull-request DCO workflow checks this requirement.
 
-Read the full text before signing off. Adding a sign-off to a commit is your certification of that text for that commit.
+Write original implementation code. Do not paste or adapt code from other projects; use their supported interfaces. Record any introduced third-party material in `THIRD-PARTY-NOTICES`, retaining its original notices, licence identifier, copyright holders and source location. Discuss material under another licence before adding it.
 
-Sign off every commit with:
+## File notices and checks
 
-```
-git commit -s
-```
+New source files carry this repository's SPDX licence identifier and copyright notice in the file's comment syntax. Preserve existing notices; add a contributor's copyright when appropriate. Files that cannot carry comments are annotated in `REUSE.toml`.
 
-This appends a trailer of exactly this form to the commit message:
-
-```
-Signed-off-by: Name <email>
-```
-
-The name and email in the trailer must match the commit's author name and author email exactly, including case. The DCO check (`.github/workflows/dco.yml`) runs on every pull request, examines every non-merge commit in it, and fails the pull request if any commit lacks a `Signed-off-by` trailer equal to that commit's `Author Name <author email>`. The check runs only on pull requests. Maintainers who push directly to a branch must still sign off every commit; the requirement is the same whether or not the check runs.
-
-`git commit -s` writes the trailer from your configured `user.name` and `user.email`. If the commit's author is someone else, for example when you commit a change on another person's behalf, the author must add their own sign-off. To add missing sign-offs to your own commits on a branch, use `git rebase --signoff <base>` or, for the last commit only, `git commit --amend -s --no-edit`, then force-push the branch.
-
-## Licence headers
-
-Every new source file carries a two-line SPDX header as its first lines. For C sources and headers:
-
-```c
-/* SPDX-License-Identifier: MIT */
-/* SPDX-FileCopyrightText: 2026 Zak Noble-Clarke */
-```
-
-For files that use `#` comments, such as build files and scripts:
-
-```
-# SPDX-License-Identifier: MIT
-# SPDX-FileCopyrightText: 2026 Zak Noble-Clarke
-```
-
-If you hold copyright in your contribution to a file, add your own `SPDX-FileCopyrightText: <year> <name>` line below the existing ones. Never remove or alter an existing copyright or licence line.
-
-Documentation and repository metadata that cannot carry a header are listed in `REUSE.toml`. Do not add a new header-less file without adding it there, and do not use `REUSE.toml` to avoid putting a header on a source file.
-
-## REUSE compliance
-
-`reuse lint` must pass. It runs in CI (`.github/workflows/reuse.yml`) on every push and pull request. Run it locally before pushing; the tool is described at https://reuse.software.
-
-## Do not copy code from other projects
-
-Write the code yourself. Do not paste or adapt code from the Linux kernel, libdrm, Mesa or any other project, including other drivers' uapi headers, even where the licence would appear to permit it.
-
-These files are offered to everyone under MIT and are compiled into GPL-2.0-only kernel modules, a GPL-2.0-only agent and a public Mesa fork. Code whose owner never agreed to MIT terms would propagate into all of them and be hard to withdraw once released. A uapi header is exactly where an existing driver's header is a tempting starting point, and it is exactly where copying would import someone else's licence into an MIT file.
-
-A similarity gate that scans changes against a corpus of plausible third-party sources is part of the planned CI for MX's MIT protocol code. It is not implemented, and a clean run would not in any case prove provenance. The rule stands on its own.
-
-## Material under another licence
-
-No material under a licence other than MIT may enter this repository without an entry in `THIRD-PARTY-NOTICES` in the same commit, naming the work, its SPDX identifier, its copyright holders and its source location, with the original notices kept intact. Raise any such case before opening a pull request.
+Run the component checks described in [README.md](README.md) and `reuse lint` before submitting. REUSE runs on pushes and pull requests.
 
 <!-- REUSE-IgnoreEnd -->
