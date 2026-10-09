@@ -396,6 +396,58 @@ int main(void)
     rc = mxgpu_drm_submit_encode(1, 0, 1, 0, 0, 4, buf, sizeof buf, &out_len);
     check_refused(rc, MXGPU_DRM_ERR_STATE, out_len, buf, sizeof buf, "null command refused");
 
+    {
+        static const uint8_t request[16] = {14, 0, 0, 0, 16, 0, 0, 0};
+        static const uint8_t response[32] = {14, 0, 0, 0, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                             0, 4, 0, 0, 0, 4, 0, 0, 64, 0, 0, 0, 0, 4, 0, 0};
+        struct mxgpu_drm_compute_limits limits = {{1024, 1024, 64}, 1024}, got;
+        uint8_t record[32];
+
+        poison(buf, sizeof buf);
+        rc = mxgpu_drm_get_compute_limits_encode(buf, sizeof buf, &out_len);
+        expect(rc == MXGPU_DRM_OK && out_len == sizeof request && !memcmp(buf, request, sizeof request),
+               "compute limits request bytes");
+        check_header(buf, out_len, MXGPU_DRM_KIND_GET_COMPUTE_LIMITS, sizeof buf);
+        expect(mxgpu_drm_get_compute_limits_decode(request, sizeof request) == MXGPU_DRM_OK,
+               "compute limits request decodes");
+        expect(mxgpu_drm_get_compute_limits_decode(request, sizeof request - 1) == MXGPU_DRM_ERR_LENGTH,
+               "short compute limits request refused");
+        poison(buf, sizeof buf);
+        rc = mxgpu_drm_get_compute_limits_response_encode(&limits, buf, sizeof buf, &out_len);
+        expect(rc == MXGPU_DRM_OK && out_len == sizeof response && !memcmp(buf, response, sizeof response),
+               "compute limits response bytes");
+        check_header(buf, out_len, MXGPU_DRM_KIND_GET_COMPUTE_LIMITS, sizeof buf);
+        memset(&got, 0, sizeof got);
+        rc = mxgpu_drm_get_compute_limits_response_decode(response, sizeof response, &got);
+        expect(rc == MXGPU_DRM_OK && got.max_work_group_size[0] == 1024 && got.max_work_group_size[1] == 1024 &&
+               got.max_work_group_size[2] == 64 && got.max_work_group_invocations == 1024,
+               "compute limits response decodes");
+        memcpy(record, response, sizeof record);
+        record[8] = 1;
+        expect(mxgpu_drm_get_compute_limits_response_decode(record, sizeof record, &got) == MXGPU_DRM_ERR_RESERVED,
+               "compute limits response flags refused");
+        memcpy(record, response, sizeof record);
+        memset(record + 24, 0, 4);
+        expect(mxgpu_drm_get_compute_limits_response_decode(record, sizeof record, &got) == MXGPU_DRM_ERR_RANGE,
+               "zero compute dimension refused");
+        expect(mxgpu_drm_get_compute_limits_response_decode(response, sizeof response - 4, &got) != MXGPU_DRM_OK,
+               "short compute limits response refused");
+        memcpy(record, response, sizeof record);
+        record[0] = MXGPU_DRM_KIND_GET_TRANSFER_LIMITS;
+        expect(mxgpu_drm_get_compute_limits_response_decode(record, sizeof record, &got) == MXGPU_DRM_ERR_KIND,
+               "wrong compute limits kind refused");
+        limits.max_work_group_invocations = 0;
+        poison(buf, sizeof buf);
+        out_len = 1;
+        rc = mxgpu_drm_get_compute_limits_response_encode(&limits, buf, sizeof buf, &out_len);
+        check_refused(rc, MXGPU_DRM_ERR_RANGE, out_len, buf, sizeof buf, "zero invocations refused");
+        limits.max_work_group_invocations = 1024;
+        poison(buf, sizeof buf);
+        out_len = 1;
+        rc = mxgpu_drm_get_compute_limits_response_encode(&limits, buf, 31, &out_len);
+        check_refused(rc, MXGPU_DRM_ERR_LENGTH, out_len, buf, sizeof buf, "small compute limits buffer refused");
+    }
+
     if (failures) {
         fprintf(stderr, "%d failure(s)\n", failures);
         return 1;

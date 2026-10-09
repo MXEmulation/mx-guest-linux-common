@@ -102,6 +102,20 @@ int mxgpu_drm_batch_response_encode(const struct mxgpu_drm_batch_response *, uin
                                     uint32_t *);
 int mxgpu_drm_batch_response_decode(const uint8_t *, uint32_t, struct mxgpu_drm_batch_response *);
 
+#define MXGPU_DRM_IOCTL_GET_COMPUTE_LIMITS 13u
+#define MXGPU_DRM_KIND_GET_COMPUTE_LIMITS 14u
+#define MXGPU_DRM_COMPUTE_LIMITS_BYTES 16u
+struct mxgpu_drm_compute_limits {
+    uint32_t max_work_group_size[3];
+    uint32_t max_work_group_invocations;
+};
+int mxgpu_drm_get_compute_limits_encode(uint8_t *out, uint32_t cap, uint32_t *out_len);
+int mxgpu_drm_get_compute_limits_decode(const uint8_t *in, uint32_t len);
+int mxgpu_drm_get_compute_limits_response_encode(const struct mxgpu_drm_compute_limits *in,
+                                                 uint8_t *out, uint32_t cap, uint32_t *out_len);
+int mxgpu_drm_get_compute_limits_response_decode(const uint8_t *in, uint32_t len,
+                                                 struct mxgpu_drm_compute_limits *out);
+
 #define MXGPU_DRM_HEADER_BYTES 16u
 #define MXGPU_DRM_HEADER_SIZE MXGPU_DRM_HEADER_BYTES
 #define MXGPU_DRM_QUEUE_MAX 5u

@@ -954,3 +954,63 @@ int mxgpu_drm_get_batch_limits_decode(const uint8_t *in, uint32_t len)
         return rc;
     return len == MXGPU_DRM_HEADER_BYTES ? MXGPU_DRM_OK : MXGPU_DRM_ERR_LENGTH;
 }
+
+static int compute_limits_ok(const struct mxgpu_drm_compute_limits *v)
+{
+    if (!v)
+        return MXGPU_DRM_ERR_STATE;
+    if (!v->max_work_group_size[0] || !v->max_work_group_size[1] || !v->max_work_group_size[2] ||
+        !v->max_work_group_invocations)
+        return MXGPU_DRM_ERR_RANGE;
+    return MXGPU_DRM_OK;
+}
+
+int mxgpu_drm_get_compute_limits_encode(uint8_t *out, uint32_t cap, uint32_t *out_len)
+{
+    return write_record(out, cap, out_len, MXGPU_DRM_KIND_GET_COMPUTE_LIMITS, 0, 0, 0, 0);
+}
+
+int mxgpu_drm_get_compute_limits_decode(const uint8_t *in, uint32_t len)
+{
+    int rc = batch_header(in, len, MXGPU_DRM_KIND_GET_COMPUTE_LIMITS, MXGPU_DRM_HEADER_BYTES);
+    if (rc)
+        return rc;
+    return len == MXGPU_DRM_HEADER_BYTES ? MXGPU_DRM_OK : MXGPU_DRM_ERR_LENGTH;
+}
+
+int mxgpu_drm_get_compute_limits_response_encode(const struct mxgpu_drm_compute_limits *in,
+                                                 uint8_t *out, uint32_t cap, uint32_t *out_len)
+{
+    uint8_t body[MXGPU_DRM_COMPUTE_LIMITS_BYTES];
+    int rc = compute_limits_ok(in);
+    if (rc)
+        return refuse(out_len, rc);
+    put_u32(body, in->max_work_group_size[0]);
+    put_u32(body + 4, in->max_work_group_size[1]);
+    put_u32(body + 8, in->max_work_group_size[2]);
+    put_u32(body + 12, in->max_work_group_invocations);
+    return write_record(out, cap, out_len, MXGPU_DRM_KIND_GET_COMPUTE_LIMITS, body, sizeof(body),
+                        0, 0);
+}
+
+int mxgpu_drm_get_compute_limits_response_decode(const uint8_t *in, uint32_t len,
+                                                 struct mxgpu_drm_compute_limits *out)
+{
+    struct mxgpu_drm_compute_limits v;
+    int rc = batch_header(in, len, MXGPU_DRM_KIND_GET_COMPUTE_LIMITS,
+                          MXGPU_DRM_HEADER_BYTES + MXGPU_DRM_COMPUTE_LIMITS_BYTES);
+    if (rc)
+        return rc;
+    if (len != MXGPU_DRM_HEADER_BYTES + MXGPU_DRM_COMPUTE_LIMITS_BYTES)
+        return MXGPU_DRM_ERR_LENGTH;
+    if (!out)
+        return MXGPU_DRM_ERR_STATE;
+    v.max_work_group_size[0] = get_u32(in + 16);
+    v.max_work_group_size[1] = get_u32(in + 20);
+    v.max_work_group_size[2] = get_u32(in + 24);
+    v.max_work_group_invocations = get_u32(in + 28);
+    rc = compute_limits_ok(&v);
+    if (!rc)
+        *out = v;
+    return rc;
+}
