@@ -23,7 +23,7 @@ Consumers include the public headers and compile the `src/*.c` entries in [`sour
 
 ## Optional DRM batches
 
-ABI 1.1 adds `GET_BATCH_LIMITS` and `SUBMIT_BATCH`. An unavailable limits query or a zero `max_commands` selects legacy submission. A supported batch contains zero-response transfers to the host or extended render commands without depth attachments, from one owned context and preserves each command's logical sequence and fence.
+ABI 1.1 adds `GET_BATCH_LIMITS` and `SUBMIT_BATCH`. An unavailable limits query or a zero `max_commands` selects legacy submission. A supported batch contains zero-response transfers to the host or extended render commands without vertex layouts whose objects, including any depth-stencil target and state, belong to one owned context, and preserves each command's logical sequence and fence.
 
 The kernel validates the complete request before posting. Responses identify each command as not posted, pending or completed and retain the actual completion status. A terminal submission failure faults its context; callers must not treat a partial batch as completed. Supported commands, limits and record fields are declared in the public header.
 
